@@ -1,9 +1,11 @@
 package com.project.POO.service;
-package com.eventmanagement.service;
 
 
+import com.project.POO.exception.CapaciteMaxAtteinteException;
 import com.project.POO.exception.EvenementDejaExistantException;
+import com.project.POO.exception.EvenementNotFoundException;
 import com.project.POO.model.Evenement;
+import com.project.POO.model.Participant;
 import com.project.POO.repository.EvenementRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

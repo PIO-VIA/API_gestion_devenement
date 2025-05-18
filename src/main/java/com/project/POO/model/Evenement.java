@@ -1,10 +1,12 @@
 package com.project.POO.model;
 
+import com.project.POO.observer.ParticipantObserver;
+import com.project.POO.observer.EvenementObservable;
 
 import lombok.Getter;
 import lombok.Setter;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -24,6 +26,10 @@ public abstract class Evenement implements EvenementObservable {
     private String lieu;
     private int capaciteMax;
     private boolean annule;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "organisateur_id")
+    private Organisateur organisateur;
 
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(

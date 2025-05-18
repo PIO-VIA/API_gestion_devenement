@@ -1,9 +1,13 @@
 package com.project.POO.controller;
 
-
-
 import com.project.POO.dto.EvenementDto;
+import com.project.POO.exception.CapaciteMaxAtteinteException;
+import com.project.POO.exception.EvenementDejaExistantException;
+import com.project.POO.exception.EvenementNotFoundException;
+import com.project.POO.model.Concert;
+import com.project.POO.model.Conference;
 import com.project.POO.model.Evenement;
+import com.project.POO.model.Participant;
 import com.project.POO.service.EvenementService;
 import com.project.POO.service.ParticipantService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -17,7 +21,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import javax.validation.Valid;
+import jakarta.validation.Valid;
 import java.util.List;
 import java.util.stream.Collectors;
 

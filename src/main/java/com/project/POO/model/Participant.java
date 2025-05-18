@@ -1,11 +1,12 @@
 package com.project.POO.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.project.POO.observer.ParticipantObserver;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
