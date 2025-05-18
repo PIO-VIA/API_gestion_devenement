@@ -1,4 +1,66 @@
 package com.project.POO.model;
 
-public class Conference {
+
+
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+import javax.persistence.*;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+
+@Entity
+@DiscriminatorValue("CONFERENCE")
+@Getter
+@Setter
+@NoArgsConstructor
+public class Conference extends Evenement {
+
+    private String theme;
+
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+            name = "conference_intervenant",
+            joinColumns = @JoinColumn(name = "conference_id"),
+            inverseJoinColumns = @JoinColumn(name = "intervenant_id")
+    )
+    private List<Intervenant> intervenants = new ArrayList<>();
+
+    public Conference(String nom, LocalDateTime date, String lieu, int capaciteMax, String theme) {
+        super(nom, date, lieu, capaciteMax);
+        this.theme = theme;
+    }
+
+    public void ajouterIntervenant(Intervenant intervenant) {
+        if (!intervenants.contains(intervenant)) {
+            intervenants.add(intervenant);
+            notifyObservers("Nouvel intervenant ajouté à la conférence: " + intervenant.getNom());
+        }
+    }
+
+    public void supprimerIntervenant(Intervenant intervenant) {
+        if (intervenants.remove(intervenant)) {
+            notifyObservers("L'intervenant " + intervenant.getNom() + " a été retiré de la conférence.");
+        }
+    }
+
+    @Override
+    public String afficherDetails() {
+        StringBuilder details = new StringBuilder();
+        details.append("Conférence: ").append(getNom())
+                .append("\nDate: ").append(getDate())
+                .append("\nLieu: ").append(getLieu())
+                .append("\nThème: ").append(theme)
+                .append("\nCapacité maximale: ").append(getCapaciteMax())
+                .append("\nParticipants inscrits: ").append(getParticipants().size())
+                .append("\nIntervenants: ");
+
+        intervenants.forEach(intervenant ->
+                details.append("\n - ").append(intervenant.getNom())
+                        .append(" (").append(intervenant.getSpecialite()).append(")"));
+
+        return details.toString();
+    }
 }
