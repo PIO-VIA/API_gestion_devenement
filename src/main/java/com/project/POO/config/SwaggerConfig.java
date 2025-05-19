@@ -21,7 +21,7 @@ public class SwaggerConfig {
                         .contact(new Contact()
                                 .name("PIO")
                                 .email("piodjiele@gmail.com")
-                                .url("https://github.com/ton-projet"))
+                                .url("https://github.com/PIO-VIA/API_gestion_devenement.git"))
                         .license(new License()
                                 .name("MIT License")));
     }
