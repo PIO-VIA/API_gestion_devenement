@@ -22,6 +22,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import jakarta.validation.Valid;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -171,6 +172,10 @@ public class EvenementController {
 
     // Méthodes utilitaires pour la conversion entre entités et DTOs
     private EvenementDto convertToDto(Evenement evenement) {
+        if (evenement == null) {
+            return null;
+        }
+
         EvenementDto dto = new EvenementDto();
         dto.setId(evenement.getId());
         dto.setNom(evenement.getNom());
@@ -178,11 +183,21 @@ public class EvenementController {
         dto.setLieu(evenement.getLieu());
         dto.setCapaciteMax(evenement.getCapaciteMax());
         dto.setAnnule(evenement.isAnnule());
+        dto.setNombreParticipants(evenement.getParticipants() != null ? evenement.getParticipants().size() : 0);
 
         if (evenement instanceof Conference) {
             Conference conference = (Conference) evenement;
             dto.setType("CONFERENCE");
             dto.setTheme(conference.getTheme());
+
+            // Gérer la liste des intervenants proprement
+            if (conference.getIntervenants() != null) {
+                dto.setIntervenants(conference.getIntervenants().stream()
+                        .map(intervenant -> intervenant.getId())
+                        .collect(Collectors.toList()));
+            } else {
+                dto.setIntervenants(new ArrayList<>());
+            }
         } else if (evenement instanceof Concert) {
             Concert concert = (Concert) evenement;
             dto.setType("CONCERT");
@@ -199,6 +214,8 @@ public class EvenementController {
         if ("CONFERENCE".equals(dto.getType())) {
             Conference conference = new Conference();
             conference.setTheme(dto.getTheme());
+            // Initialiser la liste des intervenants
+            conference.setIntervenants(new ArrayList<>());
             evenement = conference;
         } else if ("CONCERT".equals(dto.getType())) {
             Concert concert = new Concert();
@@ -214,6 +231,10 @@ public class EvenementController {
         evenement.setDate(dto.getDate());
         evenement.setLieu(dto.getLieu());
         evenement.setCapaciteMax(dto.getCapaciteMax());
+        evenement.setAnnule(dto.isAnnule());
+
+        // Initialiser la liste des participants
+        evenement.setParticipants(new ArrayList<>());
 
         return evenement;
     }

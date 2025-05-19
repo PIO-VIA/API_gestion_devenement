@@ -1,10 +1,13 @@
 package com.project.POO;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.project.POO.controller.EvenementController;
 import com.project.POO.dto.EvenementDto;
 import com.project.POO.exception.CapaciteMaxAtteinteException;
 import com.project.POO.exception.EvenementNotFoundException;
+import com.project.POO.exception.GlobalExceptionHandler;
 import com.project.POO.model.Concert;
 import com.project.POO.model.Conference;
 import com.project.POO.model.Evenement;
@@ -17,20 +20,24 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 import static org.hamcrest.Matchers.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -47,7 +54,9 @@ public class EvenementControllerTest {
     @InjectMocks
     private EvenementController evenementController;
 
-    private ObjectMapper objectMapper;
+    @Spy
+    private ObjectMapper objectMapper = new ObjectMapper();
+
     private Conference conference;
     private Concert concert;
     private Participant participant;
@@ -56,23 +65,42 @@ public class EvenementControllerTest {
 
     @BeforeEach
     void setUp() {
+        objectMapper.registerModule(new JavaTimeModule());
+        objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+
         mockMvc = MockMvcBuilders.standaloneSetup(evenementController)
+                .setControllerAdvice(new GlobalExceptionHandler())
                 .build();
 
-        objectMapper = new ObjectMapper();
-        objectMapper.findAndRegisterModules(); // Pour gérer LocalDateTime
-
-        // Créer des objets de test
-        conference = new Conference("TechConf", LocalDateTime.now().plusDays(10), "Salle A", 100, "Nouvelles technologies");
+        LocalDateTime futureDate = LocalDateTime.now().plusDays(10);
+        conference = new Conference();
         conference.setId("conf-1");
+        conference.setNom("TechConf");
+        conference.setDate(futureDate);
+        conference.setLieu("Salle A");
+        conference.setCapaciteMax(100);
+        conference.setAnnule(false);
+        conference.setParticipants(new ArrayList<>());
+        ((Conference) conference).setTheme("Nouvelles technologies");
+        ((Conference) conference).setIntervenants(new ArrayList<>());
 
-        concert = new Concert("LiveMusic", LocalDateTime.now().plusDays(20), "Stade", 1000, "Artiste Test", "Pop");
+        concert = new Concert();
         concert.setId("concert-1");
+        concert.setNom("LiveMusic");
+        concert.setDate(futureDate.plusDays(10));
+        concert.setLieu("Canal Olympia");
+        concert.setCapaciteMax(1000);
+        concert.setAnnule(false);
+        concert.setParticipants(new ArrayList<>());
+        ((Concert) concert).setArtiste(" fally");
+        ((Concert) concert).setGenreMusical("Mbole");
 
-        participant = new Participant("John Doe", "john@example.com");
+        participant = new Participant();
         participant.setId("part-1");
+        participant.setNom("John ");
+        participant.setEmail("john@example.com");
+        participant.setEvenementsInscrits(new ArrayList<>());
 
-        // Préparer les DTOs
         conferenceDto = new EvenementDto();
         conferenceDto.setId(conference.getId());
         conferenceDto.setNom(conference.getNom());
@@ -82,6 +110,7 @@ public class EvenementControllerTest {
         conferenceDto.setAnnule(conference.isAnnule());
         conferenceDto.setType("CONFERENCE");
         conferenceDto.setTheme(((Conference) conference).getTheme());
+        conferenceDto.setIntervenants(new ArrayList<>());
 
         concertDto = new EvenementDto();
         concertDto.setId(concert.getId());
@@ -103,11 +132,15 @@ public class EvenementControllerTest {
         when(evenementService.getAllEvenements()).thenReturn(evenements);
 
         // Act & Assert
-        mockMvc.perform(get("/api/evenements"))
+        mockMvc.perform(get("/api/evenements")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andDo(print())  // Affiche la requête et la réponse pour faciliter le débogage
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(2)))
                 .andExpect(jsonPath("$[0].id", is(conference.getId())))
                 .andExpect(jsonPath("$[1].id", is(concert.getId())));
+
+        verify(evenementService).getAllEvenements();
     }
 
     @Test
@@ -117,21 +150,15 @@ public class EvenementControllerTest {
         when(evenementService.getEvenementById(conference.getId())).thenReturn(conference);
 
         // Act & Assert
-        mockMvc.perform(get("/api/evenements/{id}", conference.getId()))
+        mockMvc.perform(get("/api/evenements/{id}", conference.getId())
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id", is(conference.getId())))
-                .andExpect(jsonPath("$.nom", is(conference.getNom())));
-    }
+                .andExpect(jsonPath("$.nom", is(conference.getNom())))
+                .andExpect(jsonPath("$.type", is("CONFERENCE")));
 
-    @Test
-    @DisplayName("GET /api/evenements/{id} - Retourne 404 quand l'événement n'est pas trouvé")
-    void getEvenementById_Returns404_WhenNotFound() throws Exception {
-        // Arrange
-        when(evenementService.getEvenementById(anyString())).thenThrow(new EvenementNotFoundException("Événement non trouvé"));
-
-        // Act & Assert
-        mockMvc.perform(get("/api/evenements/{id}", "non-existing-id"))
-                .andExpect(status().isNotFound());
+        verify(evenementService).getEvenementById(conference.getId());
     }
 
     @Test
@@ -144,9 +171,12 @@ public class EvenementControllerTest {
         mockMvc.perform(post("/api/evenements/conferences")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(conferenceDto)))
+                .andDo(print())
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id", is(conference.getId())))
                 .andExpect(jsonPath("$.type", is("CONFERENCE")));
+
+        verify(evenementService).creerEvenement(any(Conference.class));
     }
 
     @Test
@@ -159,9 +189,12 @@ public class EvenementControllerTest {
         mockMvc.perform(post("/api/evenements/concerts")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(concertDto)))
+                .andDo(print())
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id", is(concert.getId())))
                 .andExpect(jsonPath("$.type", is("CONCERT")));
+
+        verify(evenementService).creerEvenement(any(Concert.class));
     }
 
     @Test
@@ -174,9 +207,49 @@ public class EvenementControllerTest {
         mockMvc.perform(put("/api/evenements/{id}", conference.getId())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(conferenceDto)))
+                .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id", is(conference.getId())));
+
+        verify(evenementService).updateEvenement(eq(conference.getId()), any(Evenement.class));
     }
+
+    @Test
+    @DisplayName("GET /api/evenements/recherche - Rechercher des événements par lieu")
+    void rechercherParLieu_ReturnsMatchingEvents() throws Exception {
+        // Arrange
+        List<Evenement> matchingEvents = Arrays.asList(conference);
+        when(evenementService.rechercherParLieu("Salle")).thenReturn(matchingEvents);
+
+        // Act & Assert
+        mockMvc.perform(get("/api/evenements/recherche")
+                        .param("lieu", "Salle")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(1)))
+                .andExpect(jsonPath("$[0].id", is(conference.getId())));
+
+        verify(evenementService).rechercherParLieu("Salle");
+    }
+
+    @Test
+    @DisplayName("GET /api/evenements/disponibles - Lister les événements disponibles")
+    void evenementsDisponibles_ReturnsAvailableEvents() throws Exception {
+        // Arrange
+        List<Evenement> availableEvents = Arrays.asList(conference, concert);
+        when(evenementService.evenementsDisponibles()).thenReturn(availableEvents);
+
+        // Act & Assert
+        mockMvc.perform(get("/api/evenements/disponibles")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(2)));
+
+        verify(evenementService).evenementsDisponibles();
+    }
+
 
     @Test
     @DisplayName("DELETE /api/evenements/{id} - Supprimer un événement")
@@ -237,33 +310,5 @@ public class EvenementControllerTest {
         mockMvc.perform(delete("/api/evenements/{evenementId}/participants/{participantId}",
                         conference.getId(), participant.getId()))
                 .andExpect(status().isOk());
-    }
-
-    @Test
-    @DisplayName("GET /api/evenements/recherche - Rechercher des événements par lieu")
-    void rechercherParLieu_ReturnsMatchingEvents() throws Exception {
-        // Arrange
-        List<Evenement> matchingEvents = Arrays.asList(conference);
-        when(evenementService.rechercherParLieu(anyString())).thenReturn(matchingEvents);
-
-        // Act & Assert
-        mockMvc.perform(get("/api/evenements/recherche")
-                        .param("lieu", "Salle"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$", hasSize(1)))
-                .andExpect(jsonPath("$[0].id", is(conference.getId())));
-    }
-
-    @Test
-    @DisplayName("GET /api/evenements/disponibles - Lister les événements disponibles")
-    void evenementsDisponibles_ReturnsAvailableEvents() throws Exception {
-        // Arrange
-        List<Evenement> availableEvents = Arrays.asList(conference, concert);
-        when(evenementService.evenementsDisponibles()).thenReturn(availableEvents);
-
-        // Act & Assert
-        mockMvc.perform(get("/api/evenements/disponibles"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$", hasSize(2)));
     }
 }

@@ -3,6 +3,7 @@ package com.project.POO;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.project.POO.controller.ParticipantController;
 import com.project.POO.dto.ParticipantDto;
+import com.project.POO.exception.GlobalExceptionHandler;
 import com.project.POO.exception.ParticipantNotFoundException;
 import com.project.POO.model.Organisateur;
 import com.project.POO.model.Participant;
@@ -18,6 +19,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -25,6 +27,7 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -49,29 +52,36 @@ public class ParticipantControllerTest {
     @BeforeEach
     void setUp() {
         mockMvc = MockMvcBuilders.standaloneSetup(participantController)
+                .setControllerAdvice(new GlobalExceptionHandler())
                 .build();
 
         objectMapper = new ObjectMapper();
+        objectMapper.findAndRegisterModules();
 
         // Créer des objets de test
-        participant = new Participant("Alice Smith", "alice@example.com");
+        participant = new Participant("Alice ", "alice@example.com");
         participant.setId("part-123");
+        participant.setEvenementsInscrits(new ArrayList<>());
 
-        organisateur = new Organisateur("Bob Johnson", "bob@example.com");
+        organisateur = new Organisateur("Bob ", "bob@example.com");
         organisateur.setId("org-456");
+        organisateur.setEvenementsInscrits(new ArrayList<>());
+        organisateur.setEvenementsOrganises(new ArrayList<>());
 
-        // Préparer les DTOs
         participantDto = new ParticipantDto();
         participantDto.setId(participant.getId());
         participantDto.setNom(participant.getNom());
         participantDto.setEmail(participant.getEmail());
         participantDto.setOrganisateur(false);
+        participantDto.setEvenementsInscrits(new ArrayList<>());
 
         organisateurDto = new ParticipantDto();
         organisateurDto.setId(organisateur.getId());
         organisateurDto.setNom(organisateur.getNom());
         organisateurDto.setEmail(organisateur.getEmail());
         organisateurDto.setOrganisateur(true);
+        organisateurDto.setEvenementsInscrits(new ArrayList<>());
+        organisateurDto.setEvenementsOrganises(new ArrayList<>());
     }
 
     @Test
@@ -106,10 +116,12 @@ public class ParticipantControllerTest {
     @DisplayName("GET /api/participants/{id} - Retourne 404 quand le participant n'est pas trouvé")
     void getParticipantById_Returns404_WhenNotFound() throws Exception {
         // Arrange
-        when(participantService.getParticipantById(anyString())).thenThrow(new ParticipantNotFoundException("Participant non trouvé"));
+        String nonExistingId = "non-existing-id";
+        when(participantService.getParticipantById(nonExistingId))
+                .thenThrow(new ParticipantNotFoundException("Participant non trouvé avec l'id: " + nonExistingId));
 
         // Act & Assert
-        mockMvc.perform(get("/api/participants/{id}", "non-existing-id"))
+        mockMvc.perform(get("/api/participants/{id}", nonExistingId))
                 .andExpect(status().isNotFound());
     }
 
@@ -152,6 +164,7 @@ public class ParticipantControllerTest {
         updatedParticipant.setId(participant.getId());
         updatedParticipant.setNom("Alice Updated");
         updatedParticipant.setEmail("alice.updated@example.com");
+        updatedParticipant.setEvenementsInscrits(new ArrayList<>());
 
         when(participantService.updateParticipant(eq(participant.getId()), any(Participant.class))).thenReturn(updatedParticipant);
 
@@ -159,6 +172,7 @@ public class ParticipantControllerTest {
         updatedDto.setId(updatedParticipant.getId());
         updatedDto.setNom(updatedParticipant.getNom());
         updatedDto.setEmail(updatedParticipant.getEmail());
+        updatedDto.setEvenementsInscrits(new ArrayList<>());
 
         // Act & Assert
         mockMvc.perform(put("/api/participants/{id}", participant.getId())

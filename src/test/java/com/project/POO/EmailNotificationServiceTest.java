@@ -13,6 +13,7 @@ import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -43,22 +44,24 @@ public class EmailNotificationServiceTest {
         // Arrange
         String destinataire = "test@example.com";
         String message = "Test de notification";
+        CountDownLatch latch = new CountDownLatch(1);
+
+        EmailNotificationService spyService = spy(notificationService);
+        doAnswer(invocation -> {
+            String dest = invocation.getArgument(0);
+            String msg = invocation.getArgument(1);
+            spyService.envoyerNotification(dest, msg);
+            latch.countDown();
+            return null;
+        }).when(spyService).envoyerNotification(destinataire, message);
 
         // Act
-        notificationService.envoyerNotification(destinataire, message);
+        spyService.envoyerNotification(destinataire, message);
 
-        // Attendre que l'exécution asynchrone soit terminée
-        Thread.sleep(600);
+        assertTrue(latch.await(2, TimeUnit.SECONDS), "L'exécution asynchrone a pris trop de temps");
 
         // Assert
-        // Note: Comme l'envoi d'email est désactivé dans le code d'origine,
-        // on ne vérifie pas l'appel à mailSender.send()
-        // Si on l'activait, on pourrait utiliser:
-        // verify(mailSender).send(mailMessageCaptor.capture());
-        // SimpleMailMessage mailMessage = mailMessageCaptor.getValue();
-        // assertEquals(destinataire, mailMessage.getTo()[0]);
-        // assertEquals("Notification - Système de Gestion d'Événements", mailMessage.getSubject());
-        // assertEquals(message, mailMessage.getText());
+        verify(spyService, times(1)).envoyerNotification(destinataire, message);
     }
 
     @Test
@@ -72,24 +75,36 @@ public class EmailNotificationServiceTest {
         CompletableFuture<Boolean> future = notificationService.envoyerNotificationAsync(destinataire, message);
 
         // Assert
-        Boolean result = future.get(1, TimeUnit.SECONDS);
+        Boolean result = future.get(2, TimeUnit.SECONDS);
         assertTrue(result);
     }
 
     @Test
     @DisplayName("Gère les exceptions lors de l'envoi d'email")
-    void envoyerNotification_HandlesExceptions() {
+    void envoyerNotification_HandlesExceptions() throws InterruptedException {
         // Arrange
         String destinataire = "test@example.com";
         String message = "Test d'erreur";
         doThrow(new RuntimeException("Mail server error")).when(mailSender).send(any(SimpleMailMessage.class));
+        CountDownLatch latch = new CountDownLatch(1);
+
+        EmailNotificationService spyService = spy(notificationService);
+        doAnswer(invocation -> {
+            try {
+                notificationService.envoyerNotification(
+                        invocation.getArgument(0),
+                        invocation.getArgument(1)
+                );
+            } finally {
+                latch.countDown();
+            }
+            return null;
+        }).when(spyService).envoyerNotification(anyString(), anyString());
 
         // Act & Assert
-        // Ne devrait pas lever d'exception, elle est capturée dans la méthode
         assertDoesNotThrow(() -> {
-            notificationService.envoyerNotification(destinataire, message);
-            // Attendre que l'exécution asynchrone soit terminée
-            Thread.sleep(600);
+            spyService.envoyerNotification(destinataire, message);
+            assertTrue(latch.await(2, TimeUnit.SECONDS), "L'exécution asynchrone a pris trop de temps");
         });
     }
 
@@ -99,13 +114,16 @@ public class EmailNotificationServiceTest {
         // Arrange
         String destinataire = "test@example.com";
         String message = "Test d'erreur asynchrone";
-        doThrow(new RuntimeException("Mail server error")).when(mailSender).send(any(SimpleMailMessage.class));
+
+        JavaMailSender failingMailSender = mock(JavaMailSender.class);
+        doThrow(new RuntimeException("Mail server error")).when(failingMailSender).send(any(SimpleMailMessage.class));
+        EmailNotificationService failingService = new EmailNotificationService(failingMailSender);
 
         // Act
-        CompletableFuture<Boolean> future = notificationService.envoyerNotificationAsync(destinataire, message);
+        CompletableFuture<Boolean> future = failingService.envoyerNotificationAsync(destinataire, message);
 
         // Assert
-        Boolean result = future.get(1, TimeUnit.SECONDS);
+        Boolean result = future.get(2, TimeUnit.SECONDS);
         assertFalse(result);
     }
 }

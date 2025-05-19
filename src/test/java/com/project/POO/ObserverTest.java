@@ -29,7 +29,7 @@ public class ObserverTest {
     @BeforeEach
     void setUp() {
         // Créer un événement et des participants pour les tests
-        evenement = new Conference("TechConf", LocalDateTime.now().plusDays(10), "Salle A", 100, "Nouvelles technologies");
+        evenement = new Conference("Conf IA", LocalDateTime.now().plusDays(10), " S1", 100, "Nouvelles technologies sur IA");
         evenement.setId("evt-1");
 
         participant1 = new Participant("Alice", "alice@example.com");

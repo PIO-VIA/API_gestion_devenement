@@ -1,19 +1,17 @@
 package com.project.POO.config;
 
-import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Contact;
 import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.info.License;
+import org.springdoc.core.models.GroupedOpenApi;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Primary;
 
 @Configuration
 public class SwaggerConfig {
 
     @Bean
-    @Primary
     public OpenAPI eventManagementOpenAPI() {
         return new OpenAPI()
                 .info(new Info()
@@ -26,5 +24,13 @@ public class SwaggerConfig {
                                 .url("https://github.com/ton-projet"))
                         .license(new License()
                                 .name("MIT License")));
+    }
+
+    @Bean
+    public GroupedOpenApi publicApi() {
+        return GroupedOpenApi.builder()
+                .group("public")
+                .pathsToMatch("/api/**")
+                .build();
     }
 }

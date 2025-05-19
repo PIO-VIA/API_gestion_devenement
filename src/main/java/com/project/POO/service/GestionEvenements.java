@@ -1,6 +1,5 @@
 package com.project.POO.service;
 
-
 import com.project.POO.model.Evenement;
 import org.springframework.stereotype.Service;
 
@@ -69,5 +68,19 @@ public class GestionEvenements {
      */
     public Map<String, Evenement> getEvenements() {
         return Collections.unmodifiableMap(evenements);
+    }
+
+    /**
+     * Vide la liste des événements (pour les tests)
+     */
+    public void clear() {
+        evenements.clear();
+    }
+
+    /**
+     * Réinitialise l'instance singleton (pour les tests)
+     */
+    public static void resetInstance() {
+        instance = null;
     }
 }

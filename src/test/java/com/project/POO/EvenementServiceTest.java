@@ -49,14 +49,13 @@ public class EvenementServiceTest {
 
     @BeforeEach
     void setUp() {
-        // Créer des objets de test
-        conference = new Conference("TechConf", LocalDateTime.now().plusDays(10), "Salle A", 100, "Nouvelles technologies");
+        conference = new Conference("Conf IA", LocalDateTime.now().plusDays(10), "S1", 100, "Nouvelles technologies sur IA");
         conference.setId("conf-1");
 
-        concert = new Concert("LiveMusic", LocalDateTime.now().plusDays(20), "Stade", 1000, "Artiste Test", "Pop");
+        concert = new Concert("LiveMusic", LocalDateTime.now().plusDays(20), "Canal Olympia", 1000, "fally ", "Mbole");
         concert.setId("concert-1");
 
-        participant = new Participant("John Doe", "john@example.com");
+        participant = new Participant("John ", "john@example.com");
         participant.setId("part-1");
     }
 

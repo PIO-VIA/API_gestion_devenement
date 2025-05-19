@@ -21,29 +21,25 @@ public class GestionEvenementsTest {
 
     @BeforeEach
     void setUp() {
-        // Récupérer l'instance unique (pattern Singleton)
+        GestionEvenements.resetInstance();
         gestionEvenements = GestionEvenements.getInstance();
-
-        // Vider la map d'événements pour partir d'un état propre
-        gestionEvenements.getEvenements().clear();
-
-        // Créer des événements de test
-        conference = new Conference("TechConf", LocalDateTime.now().plusDays(10), "Salle A", 100, "Nouvelles technologies");
+        gestionEvenements.clear();
+        conference = new Conference("Conf IA", LocalDateTime.now().plusDays(10), "S1", 100, "Nouvelles technologies sur IA");
         conference.setId("conf-1");
 
-        concert = new Concert("LiveMusic", LocalDateTime.now().plusDays(20), "Stade", 1000, "Artiste Test", "Pop");
+        concert = new Concert("LiveMusic", LocalDateTime.now().plusDays(20), "Canal Olympia", 1000, "fally ", "Mbole");
         concert.setId("concert-1");
     }
 
     @Test
-    @DisplayName("Vérifier que getInstance retourne toujours la même instance (Singleton)")
+    @DisplayName("Vérifier que getInstance retourne toujours la même instance ")
     void getInstance_ReturnsSameInstance() {
         // Arrange
         GestionEvenements instance1 = GestionEvenements.getInstance();
         GestionEvenements instance2 = GestionEvenements.getInstance();
 
         // Assert
-        assertSame(instance1, instance2, "getInstance devrait retourner la même instance (Singleton)");
+        assertSame(instance1, instance2, "getInstance devrait retourner la même instance ");
     }
 
     @Test

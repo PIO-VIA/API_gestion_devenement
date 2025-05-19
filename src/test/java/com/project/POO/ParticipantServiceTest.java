@@ -41,10 +41,10 @@ public class ParticipantServiceTest {
     @BeforeEach
     void setUp() {
         // Créer des objets de test
-        participant = new Participant("Alice Smith", "alice@example.com");
+        participant = new Participant("Alice ", "alice@example.com");
         participant.setId("part-123");
 
-        organisateur = new Organisateur("Bob Johnson", "bob@example.com");
+        organisateur = new Organisateur("Bob ", "bob@example.com");
         organisateur.setId("org-456");
     }
 
