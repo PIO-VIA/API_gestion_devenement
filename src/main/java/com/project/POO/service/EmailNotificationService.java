@@ -21,29 +21,20 @@ public class EmailNotificationService implements NotificationService {
 
     private final JavaMailSender mailSender;
 
-    /**
-     * Envoie une notification par email
-     * Cette méthode est exécutée de manière asynchrone
-     *
-     * @param destinataire L'adresse email du destinataire
-     * @param message Le contenu du message à envoyer
-     */
+
     @Override
     @Async
     public void envoyerNotification(String destinataire, String message) {
         log.info("Envoi d'une notification à {}: {}", destinataire, message);
 
         try {
-            // En environnement de production, on enverrait un véritable email
             SimpleMailMessage mailMessage = new SimpleMailMessage();
             mailMessage.setTo(destinataire);
             mailMessage.setSubject("Notification - Système de Gestion d'Événements");
             mailMessage.setText(message);
 
-            // Désactivé pour le développement pour éviter d'envoyer de vrais emails
-            // mailSender.send(mailMessage);
+            mailSender.send(mailMessage);
 
-            // Simuler un délai pour l'envoi asynchrone
             Thread.sleep(500);
 
             log.info("Notification envoyée avec succès à {}", destinataire);
@@ -52,9 +43,7 @@ public class EmailNotificationService implements NotificationService {
         }
     }
 
-    /**
-     * Version alternative utilisant CompletableFuture pour une meilleure gestion des résultats
-     */
+
     public CompletableFuture<Boolean> envoyerNotificationAsync(String destinataire, String message) {
         return CompletableFuture.supplyAsync(() -> {
             try {

@@ -44,8 +44,6 @@ public class ObserverTest {
     void subscribe_AddsParticipantToObservers() {
         // Act
         evenement.subscribe(participant1);
-
-        // Réflexion pour accéder à la liste des observers (private)
         boolean containsParticipant = evenement.getObservers().contains(participant1);
 
         // Assert

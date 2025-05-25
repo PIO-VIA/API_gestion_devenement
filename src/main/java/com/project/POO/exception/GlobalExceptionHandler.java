@@ -71,7 +71,6 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(error, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
-    // Classe interne pour la structure des réponses d'erreur
     public static class ErrorResponse {
         private int status;
         private String message;

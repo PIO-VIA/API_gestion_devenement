@@ -23,17 +23,11 @@ public class EvenementDto {
     private int capaciteMax;
     private boolean annule;
 
-    // Champs spécifiques par type d'événement
-    private String type; // "CONFERENCE" ou "CONCERT"
+    private String type;
 
-    // Pour Conference
     private String theme;
     private List<String> intervenants = new ArrayList<>();
-
-    // Pour Concert
     private String artiste;
     private String genreMusical;
-
-    // Statistiques
     private int nombreParticipants;
 }

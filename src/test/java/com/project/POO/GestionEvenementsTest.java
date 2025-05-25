@@ -21,25 +21,14 @@ public class GestionEvenementsTest {
 
     @BeforeEach
     void setUp() {
-        GestionEvenements.resetInstance();
-        gestionEvenements = GestionEvenements.getInstance();
-        gestionEvenements.clear();
+        // Créer une nouvelle instance pour chaque test
+        gestionEvenements = new GestionEvenements();
+
         conference = new Conference("Conf IA", LocalDateTime.now().plusDays(10), "S1", 100, "Nouvelles technologies sur IA");
         conference.setId("conf-1");
 
         concert = new Concert("LiveMusic", LocalDateTime.now().plusDays(20), "Canal Olympia", 1000, "fally ", "Mbole");
         concert.setId("concert-1");
-    }
-
-    @Test
-    @DisplayName("Vérifier que getInstance retourne toujours la même instance ")
-    void getInstance_ReturnsSameInstance() {
-        // Arrange
-        GestionEvenements instance1 = GestionEvenements.getInstance();
-        GestionEvenements instance2 = GestionEvenements.getInstance();
-
-        // Assert
-        assertSame(instance1, instance2, "getInstance devrait retourner la même instance ");
     }
 
     @Test

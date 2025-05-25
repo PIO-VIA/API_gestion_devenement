@@ -39,6 +39,7 @@ public abstract class Evenement implements EvenementObservable {
     )
     private List<Participant> participants = new ArrayList<>();
 
+    @Getter
     @Transient
     private List<ParticipantObserver> observers = new ArrayList<>();
 
@@ -106,4 +107,5 @@ public abstract class Evenement implements EvenementObservable {
             observer.update(message);
         }
     }
+
 }

@@ -12,8 +12,6 @@ public class ParticipantDto {
     private String nom;
     private String email;
     private List<String> evenementsInscrits;
-
-    // Pour les organisateurs
     private boolean organisateur;
     private List<String> evenementsOrganises;
 }
