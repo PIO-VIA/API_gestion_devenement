@@ -1,9 +1,7 @@
+// EmailNotificationService.java - Version simplifiée sans Spring Mail
 package com.project.POO.service;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.mail.SimpleMailMessage;
-import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.stereotype.Service;
@@ -11,48 +9,63 @@ import org.springframework.stereotype.Service;
 import java.util.concurrent.CompletableFuture;
 
 /**
- * Implémentation du service de notification par email
-*/
+ * Implémentation simplifiée du service de notification
+ * Cette version simule l'envoi d'emails sans dépendre de Spring Mail
+ */
 @Service
-@RequiredArgsConstructor
 @Slf4j
 @EnableAsync
 public class EmailNotificationService implements NotificationService {
 
-    //private final JavaMailSender mailSender;
-
-
     @Override
     @Async
     public void envoyerNotification(String destinataire, String message) {
-        log.info("Envoi d'une notification à {}: {}", destinataire, message);
+        log.info("📧 Envoi d'une notification à {}: {}", destinataire, message);
 
         try {
-            SimpleMailMessage mailMessage = new SimpleMailMessage();
-            mailMessage.setTo(destinataire);
-            mailMessage.setSubject("Notification - Système de Gestion d'Événements");
-            mailMessage.setText(message);
+            // Simulation d'un délai d'envoi d'email
+            Thread.sleep(100);
 
-            //mailSender.send(mailMessage);
+            // Dans une vraie application, ici on enverrait l'email via SMTP
+            // Pour le TP, on simule juste l'envoi
+            log.info("✅ Notification envoyée avec succès à {}", destinataire);
 
-           // Thread.sleep(500);
-
-            log.info("Notification envoyée avec succès à {}", destinataire);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            log.error("❌ Erreur lors de l'envoi de la notification à {}: {}", destinataire, e.getMessage());
         } catch (Exception e) {
-            log.error("Erreur lors de l'envoi de la notification à {}: {}", destinataire, e.getMessage());
+            log.error("❌ Erreur lors de l'envoi de la notification à {}: {}", destinataire, e.getMessage());
         }
     }
 
-
+    /**
+     * Envoi de notification asynchrone avec retour de statut
+     * @param destinataire Email du destinataire
+     * @param message Message à envoyer
+     * @return CompletableFuture avec le statut d'envoi
+     */
     public CompletableFuture<Boolean> envoyerNotificationAsync(String destinataire, String message) {
         return CompletableFuture.supplyAsync(() -> {
             try {
                 envoyerNotification(destinataire, message);
                 return true;
             } catch (Exception e) {
-                log.error("Erreur asynchrone: {}", e.getMessage());
+                log.error("❌ Erreur asynchrone lors de l'envoi à {}: {}", destinataire, e.getMessage());
                 return false;
             }
         });
+    }
+
+    /**
+     * Envoi en lot de notifications
+     * @param destinataires Liste des emails
+     * @param message Message commun
+     */
+    public void envoyerNotificationEnLot(java.util.List<String> destinataires, String message) {
+        log.info("📧 Envoi en lot de {} notifications", destinataires.size());
+
+        destinataires.forEach(destinataire ->
+                CompletableFuture.runAsync(() -> envoyerNotification(destinataire, message))
+        );
     }
 }

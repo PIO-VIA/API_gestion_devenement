@@ -18,10 +18,10 @@ import jakarta.validation.Valid;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@RestController
+//@RestController
 @RequestMapping("/api/participants")
 @RequiredArgsConstructor
-@Tag(name = "Participants", description = "API de gestion des participants")
+/*@Tag(name = "Participants", description = "API de gestion des participants")*/
 public class ParticipantController {
 
     private final ParticipantService participantService;

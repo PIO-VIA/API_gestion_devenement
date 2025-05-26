@@ -1,34 +1,34 @@
 package com.project.POO.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.project.POO.observer.ParticipantObserver;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import jakarta.persistence.*;
+import java.beans.Transient;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-@Entity
-@Inheritance(strategy = InheritanceType.JOINED)
 @Getter
 @Setter
 @NoArgsConstructor
+@JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, include = JsonTypeInfo.As.PROPERTY, property = "@type")
+@JsonSubTypes({
+        @JsonSubTypes.Type(value = Organisateur.class, name = "organisateur")
+})
 public class Participant implements ParticipantObserver {
 
-    @Id
     private String id;
-
     private String nom;
     private String email;
 
-    @ManyToMany(mappedBy = "participants", fetch = FetchType.LAZY)
     @JsonIgnore
     private List<Evenement> evenementsInscrits = new ArrayList<>();
 
-    @Transient
     private List<String> notifications = new ArrayList<>();
 
     public Participant(String nom, String email) {
@@ -36,6 +36,7 @@ public class Participant implements ParticipantObserver {
         this.nom = nom;
         this.email = email;
     }
+
 
     public void inscrireEvenement(Evenement evenement) throws Exception {
         if (evenement.ajouterParticipant(this)) {

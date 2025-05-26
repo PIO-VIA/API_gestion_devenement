@@ -5,12 +5,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import jakarta.persistence.DiscriminatorValue;
-import jakarta.persistence.Entity;
+
 import java.time.LocalDateTime;
 
-@Entity
-@DiscriminatorValue("CONCERT")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -24,6 +21,7 @@ public class Concert extends Evenement {
         this.artiste = artiste;
         this.genreMusical = genreMusical;
     }
+
 
     @Override
     public String afficherDetails() {

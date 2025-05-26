@@ -1,0 +1,25 @@
+[ "java.util.ArrayList", [ [ "com.project.POO.model.Conference", {
+  "id" : "b1d4d4ca-3bfa-44f8-8e90-590790581691",
+  "nom" : "TechConf 2024",
+  "date" : "2025-06-25T19:32:24.771516185",
+  "lieu" : "Salle de Conférence",
+  "capaciteMax" : 100,
+  "annule" : false,
+  "organisateur" : null,
+  "participants" : [ "java.util.ArrayList", [ ] ],
+  "observers" : [ "java.util.ArrayList", [ ] ],
+  "theme" : "Intelligence Artificielle",
+  "intervenants" : [ "java.util.ArrayList", [ ] ]
+} ], [ "com.project.POO.model.Concert", {
+  "id" : "3d0487df-138e-4e85-83de-51d9c5d1d49c",
+  "nom" : "Live Music",
+  "date" : "2025-06-10T19:32:24.771669088",
+  "lieu" : "Stadium",
+  "capaciteMax" : 5000,
+  "annule" : false,
+  "organisateur" : null,
+  "participants" : [ "java.util.ArrayList", [ ] ],
+  "observers" : [ "java.util.ArrayList", [ ] ],
+  "artiste" : "Artiste Populaire",
+  "genreMusical" : "Pop"
+} ] ] ]

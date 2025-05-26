@@ -24,10 +24,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@RestController
+//@RestController
 @RequestMapping("/api/evenements")
 @RequiredArgsConstructor
-@Tag(name = "Événements", description = "API de gestion des événements")
+//@Tag(name = "Événements", description = "API de gestion des événements")
 public class EvenementController {
 
     private final EvenementService evenementService;

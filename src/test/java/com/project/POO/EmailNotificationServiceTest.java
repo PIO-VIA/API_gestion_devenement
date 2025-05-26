@@ -108,7 +108,7 @@ public class EmailNotificationServiceTest {
         });
     }
 
-   /* @Test
+   /*@Test
     @DisplayName("La notification asynchrone gère les exceptions")
     void envoyerNotificationAsync_HandlesExceptions() throws InterruptedException, ExecutionException, TimeoutException {
         // Arrange

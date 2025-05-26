@@ -4,32 +4,23 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-@Entity
-@DiscriminatorValue("CONFERENCE")
 @Getter
 @Setter
 @NoArgsConstructor
 public class Conference extends Evenement {
 
     private String theme;
-
-    @ManyToMany(fetch = FetchType.LAZY)
-    @JoinTable(
-            name = "conference_intervenant",
-            joinColumns = @JoinColumn(name = "conference_id"),
-            inverseJoinColumns = @JoinColumn(name = "intervenant_id")
-    )
     private List<Participant> intervenants = new ArrayList<>();
 
     public Conference(String nom, LocalDateTime date, String lieu, int capaciteMax, String theme) {
         super(nom, date, lieu, capaciteMax);
         this.theme = theme;
     }
+
 
     public void ajouterIntervenant(Participant intervenant) {
         if (!intervenants.contains(intervenant)) {

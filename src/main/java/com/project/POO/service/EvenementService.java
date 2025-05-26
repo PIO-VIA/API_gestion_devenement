@@ -1,18 +1,15 @@
 package com.project.POO.service;
 
-
 import com.project.POO.exception.CapaciteMaxAtteinteException;
 import com.project.POO.exception.EvenementDejaExistantException;
 import com.project.POO.exception.EvenementNotFoundException;
 import com.project.POO.model.Evenement;
 import com.project.POO.model.Participant;
-import com.project.POO.repository.EvenementRepository;
+import com.project.POO.repository.JsonEvenementRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
@@ -20,35 +17,30 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class EvenementService {
 
-    private final EvenementRepository evenementRepository;
+    private final JsonEvenementRepository evenementRepository;
     private final NotificationService notificationService;
     private final GestionEvenements gestionEvenements;
 
-    @Transactional
     public Evenement creerEvenement(Evenement evenement) throws EvenementDejaExistantException {
         if (evenementRepository.existsByNomAndDate(evenement.getNom(), evenement.getDate())) {
             throw new EvenementDejaExistantException("Un événement avec le même nom et date existe déjà");
         }
 
         Evenement savedEvenement = evenementRepository.save(evenement);
-
         gestionEvenements.ajouterEvenement(savedEvenement);
 
         return savedEvenement;
     }
 
-    @Transactional(readOnly = true)
     public List<Evenement> getAllEvenements() {
         return evenementRepository.findAll();
     }
 
-    @Transactional(readOnly = true)
     public Evenement getEvenementById(String id) throws EvenementNotFoundException {
         return evenementRepository.findById(id)
                 .orElseThrow(() -> new EvenementNotFoundException("Événement non trouvé avec l'id: " + id));
     }
 
-    @Transactional
     public Evenement updateEvenement(String id, Evenement evenementDetails) throws EvenementNotFoundException {
         Evenement evenement = getEvenementById(id);
 
@@ -65,7 +57,6 @@ public class EvenementService {
         return evenementRepository.save(evenement);
     }
 
-    @Transactional
     public void deleteEvenement(String id) throws EvenementNotFoundException {
         Evenement evenement = getEvenementById(id);
 
@@ -73,13 +64,11 @@ public class EvenementService {
         evenement.notifyObservers(message);
 
         gestionEvenements.supprimerEvenement(id);
-
         evenementRepository.delete(evenement);
 
         envoyerNotificationsAsync(evenement.getParticipants(), message);
     }
 
-    @Transactional
     public void annulerEvenement(String id) throws EvenementNotFoundException {
         Evenement evenement = getEvenementById(id);
         evenement.annuler();
@@ -90,7 +79,6 @@ public class EvenementService {
         evenementRepository.save(evenement);
     }
 
-    @Transactional
     public void ajouterParticipant(String evenementId, Participant participant)
             throws EvenementNotFoundException, CapaciteMaxAtteinteException {
         Evenement evenement = getEvenementById(evenementId);
@@ -110,7 +98,6 @@ public class EvenementService {
         }
     }
 
-    @Transactional
     public void supprimerParticipant(String evenementId, String participantId)
             throws EvenementNotFoundException {
         Evenement evenement = getEvenementById(evenementId);
