@@ -6,7 +6,6 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.project.POO.controller.EvenementController;
 import com.project.POO.dto.EvenementDto;
 import com.project.POO.exception.CapaciteMaxAtteinteException;
-import com.project.POO.exception.EvenementNotFoundException;
 import com.project.POO.exception.GlobalExceptionHandler;
 import com.project.POO.model.Concert;
 import com.project.POO.model.Conference;

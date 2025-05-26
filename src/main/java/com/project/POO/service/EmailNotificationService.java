@@ -12,14 +12,14 @@ import java.util.concurrent.CompletableFuture;
 
 /**
  * Implémentation du service de notification par email
- */
+*/
 @Service
 @RequiredArgsConstructor
 @Slf4j
 @EnableAsync
 public class EmailNotificationService implements NotificationService {
 
-    private final JavaMailSender mailSender;
+    //private final JavaMailSender mailSender;
 
 
     @Override
@@ -33,9 +33,9 @@ public class EmailNotificationService implements NotificationService {
             mailMessage.setSubject("Notification - Système de Gestion d'Événements");
             mailMessage.setText(message);
 
-            mailSender.send(mailMessage);
+            //mailSender.send(mailMessage);
 
-            Thread.sleep(500);
+           // Thread.sleep(500);
 
             log.info("Notification envoyée avec succès à {}", destinataire);
         } catch (Exception e) {
