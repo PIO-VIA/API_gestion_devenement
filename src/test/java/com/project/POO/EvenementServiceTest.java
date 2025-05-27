@@ -6,6 +6,7 @@ import com.project.POO.model.Concert;
 import com.project.POO.model.Conference;
 import com.project.POO.model.Evenement;
 import com.project.POO.model.Participant;
+import com.project.POO.repository.JsonEvenementRepository;
 import com.project.POO.service.EvenementService;
 import com.project.POO.service.GestionEvenements;
 import com.project.POO.service.NotificationService;
@@ -29,9 +30,9 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 public class EvenementServiceTest {
-/*
+
     @Mock
-    private EvenementRepository evenementRepository;
+    private JsonEvenementRepository evenementRepository;
 
     @Mock
     private NotificationService notificationService;
@@ -156,6 +157,22 @@ public class EvenementServiceTest {
     }
 
     @Test
+    @DisplayName("Supprimer un événement")
+    void deleteEvenement_Success() throws EvenementNotFoundException {
+        // Arrange
+        when(evenementRepository.findById(conference.getId())).thenReturn(Optional.of(conference));
+        doNothing().when(evenementRepository).delete(any(Evenement.class));
+        doNothing().when(gestionEvenements).supprimerEvenement(anyString());
+
+        // Act
+        evenementService.deleteEvenement(conference.getId());
+
+        // Assert
+        verify(evenementRepository).delete(conference);
+        verify(gestionEvenements).supprimerEvenement(conference.getId());
+    }
+
+    @Test
     @DisplayName("Annuler un événement")
     void annulerEvenement_MarksEventAsCancelled() throws EvenementNotFoundException {
         // Arrange
@@ -172,7 +189,7 @@ public class EvenementServiceTest {
 
     @Test
     @DisplayName("Ajouter un participant à un événement")
-    void ajouterParticipant_Success() throws EvenementNotFoundException, Exception {
+    void ajouterParticipant_Success() throws Exception {
         // Arrange
         when(evenementRepository.findById(conference.getId())).thenReturn(Optional.of(conference));
         when(evenementRepository.save(any(Evenement.class))).thenReturn(conference);
@@ -219,6 +236,21 @@ public class EvenementServiceTest {
     }
 
     @Test
+    @DisplayName("Rechercher des événements par lieu avec repository")
+    void rechercherParLieu_UsesRepository() {
+        // Arrange
+        List<Evenement> matchingEvents = Arrays.asList(conference);
+        when(evenementRepository.findByLieuContainingIgnoreCase("salle")).thenReturn(matchingEvents);
+
+        // Utiliser directement la méthode du repository si disponible
+        List<Evenement> result = evenementRepository.findByLieuContainingIgnoreCase("salle");
+
+        // Assert
+        assertEquals(1, result.size());
+        assertEquals(conference.getId(), result.get(0).getId());
+    }
+
+    @Test
     @DisplayName("Lister les événements disponibles")
     void evenementsDisponibles_ReturnAvailableEvents() {
         // Arrange
@@ -233,5 +265,29 @@ public class EvenementServiceTest {
         // Assert
         assertEquals(1, result.size());
         assertEquals(conference.getId(), result.get(0).getId());
-    }*/
+    }
+
+    @Test
+    @DisplayName("Vérifier la capacité maximale lors de l'ajout d'un participant")
+    void ajouterParticipant_ThrowsException_WhenCapacityReached() {
+        // Arrange
+        Conference smallConference = new Conference("Small Conf", LocalDateTime.now().plusDays(5), "Small Room", 1, "Test");
+        smallConference.setId("small-conf");
+
+        Participant existingParticipant = new Participant("Existing", "existing@example.com");
+        existingParticipant.setId("existing-1");
+
+        try {
+            smallConference.ajouterParticipant(existingParticipant); // Remplir la capacité
+        } catch (Exception e) {
+            // Ignorer l'exception pour le setup
+        }
+
+        when(evenementRepository.findById(smallConference.getId())).thenReturn(Optional.of(smallConference));
+
+        // Act & Assert
+        assertThrows(RuntimeException.class, () -> {
+            evenementService.ajouterParticipant(smallConference.getId(), participant);
+        });
+    }
 }

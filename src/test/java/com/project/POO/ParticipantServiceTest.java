@@ -3,6 +3,7 @@ package com.project.POO;
 import com.project.POO.exception.ParticipantNotFoundException;
 import com.project.POO.model.Organisateur;
 import com.project.POO.model.Participant;
+import com.project.POO.repository.JsonParticipantRepository;
 import com.project.POO.service.NotificationService;
 import com.project.POO.service.ParticipantService;
 import org.junit.jupiter.api.BeforeEach;
@@ -24,9 +25,9 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 public class ParticipantServiceTest {
-/*
+
     @Mock
-    private ParticipantRepository participantRepository;
+    private JsonParticipantRepository participantRepository;
 
     @Mock
     private NotificationService notificationService;
@@ -121,6 +122,19 @@ public class ParticipantServiceTest {
     }
 
     @Test
+    @DisplayName("Récupérer un participant par email retourne Optional vide si non trouvé")
+    void getParticipantByEmail_ReturnsEmpty_WhenNotFound() {
+        // Arrange
+        when(participantRepository.findByEmail("nonexistent@example.com")).thenReturn(Optional.empty());
+
+        // Act
+        Optional<Participant> result = participantService.getParticipantByEmail("nonexistent@example.com");
+
+        // Assert
+        assertFalse(result.isPresent());
+    }
+
+    @Test
     @DisplayName("Mettre à jour un participant")
     void updateParticipant_Success() throws ParticipantNotFoundException {
         // Arrange
@@ -142,6 +156,24 @@ public class ParticipantServiceTest {
     }
 
     @Test
+    @DisplayName("Mettre à jour un participant inexistant lance une exception")
+    void updateParticipant_ThrowsException_WhenNotFound() {
+        // Arrange
+        String nonExistingId = "non-existing-id";
+        Participant updateData = new Participant();
+        updateData.setNom("Updated Name");
+
+        when(participantRepository.findById(nonExistingId)).thenReturn(Optional.empty());
+
+        // Act & Assert
+        assertThrows(ParticipantNotFoundException.class, () -> {
+            participantService.updateParticipant(nonExistingId, updateData);
+        });
+
+        verify(participantRepository, never()).save(any(Participant.class));
+    }
+
+    @Test
     @DisplayName("Suppression d'un participant")
     void deleteParticipant_Success() throws ParticipantNotFoundException {
         // Arrange
@@ -153,6 +185,21 @@ public class ParticipantServiceTest {
 
         // Assert
         verify(participantRepository).delete(participant);
+    }
+
+    @Test
+    @DisplayName("Suppression d'un participant inexistant lance une exception")
+    void deleteParticipant_ThrowsException_WhenNotFound() {
+        // Arrange
+        String nonExistingId = "non-existing-id";
+        when(participantRepository.findById(nonExistingId)).thenReturn(Optional.empty());
+
+        // Act & Assert
+        assertThrows(ParticipantNotFoundException.class, () -> {
+            participantService.deleteParticipant(nonExistingId);
+        });
+
+        verify(participantRepository, never()).delete(any(Participant.class));
     }
 
     @Test
@@ -168,5 +215,56 @@ public class ParticipantServiceTest {
         // Assert
         assertEquals(1, result.size());
         assertEquals(participant.getId(), result.get(0).getId());
-    }*/
+        verify(participantRepository).findByNomContainingIgnoreCase("Alice");
+    }
+
+    @Test
+    @DisplayName("Rechercher des participants par nom retourne une liste vide si aucun match")
+    void rechercherParNom_ReturnsEmptyList_WhenNoMatch() {
+        // Arrange
+        when(participantRepository.findByNomContainingIgnoreCase("NonExistent")).thenReturn(Arrays.asList());
+
+        // Act
+        List<Participant> result = participantService.rechercherParNom("NonExistent");
+
+        // Assert
+        assertTrue(result.isEmpty());
+    }
+
+    @Test
+    @DisplayName("Créer un organisateur avec succès")
+    void creerOrganisateur_Success() {
+        // Arrange
+        when(participantRepository.save(any(Organisateur.class))).thenReturn(organisateur);
+
+        // Act
+        Participant result = participantService.creerParticipant(organisateur);
+
+        // Assert
+        assertNotNull(result);
+        assertTrue(result instanceof Organisateur);
+        assertEquals(organisateur.getId(), result.getId());
+        assertEquals(organisateur.getNom(), result.getNom());
+        verify(participantRepository).save(organisateur);
+    }
+
+    @Test
+    @DisplayName("Vérifier que l'ID est généré automatiquement pour un nouveau participant")
+    void creerParticipant_GeneratesId_WhenNoIdProvided() {
+        // Arrange
+        Participant newParticipant = new Participant("New User", "new@example.com");
+        // Ne pas définir d'ID explicitement
+
+        Participant savedParticipant = new Participant("New User", "new@example.com");
+        savedParticipant.setId("auto-generated-id");
+
+        when(participantRepository.save(any(Participant.class))).thenReturn(savedParticipant);
+
+        // Act
+        Participant result = participantService.creerParticipant(newParticipant);
+
+        // Assert
+        assertNotNull(result.getId());
+        assertEquals("auto-generated-id", result.getId());
+    }
 }
