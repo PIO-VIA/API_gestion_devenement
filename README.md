@@ -171,7 +171,7 @@ curl -X POST http://localhost:8080/api/evenements/conferences \
 Les données sont stockées dans des fichiers JSON dans le dossier `data/`:
 
 ```json
-/* data/evenements.json*/
+//evenements.json
 [
   {
     "@type": "com.project.POO.model.Conference",
