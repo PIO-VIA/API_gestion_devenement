@@ -1,4 +1,3 @@
-// EmailNotificationService.java - Version simplifiée sans Spring Mail
 package com.project.POO.service;
 
 import lombok.extern.slf4j.Slf4j;

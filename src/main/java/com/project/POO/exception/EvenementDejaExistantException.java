@@ -1,4 +1,3 @@
-// EvenementDejaExistantException.java
 package com.project.POO.exception;
 
 public class EvenementDejaExistantException extends RuntimeException {
