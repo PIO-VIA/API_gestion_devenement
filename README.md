@@ -2,7 +2,7 @@
 
 ## Description du projet
 
-G_EVENT est une application de gestion d'événements complète permettant d'organiser, suivre et gérer différents types d'événements tels que des conférences et concerts. Cette application repose sur une architecture REST et implémente plusieurs patterns de conception, notamment Observer, Singleton et DTO.
+G_EVENT est une application complète de gestion d'événements permettant d'organiser, suivre et gérer différents types d'événements tels que des conférences et concerts. Cette application repose sur une architecture REST avec persistance JSON et implémente plusieurs patterns de conception, notamment Observer, Singleton et DTO.
 
 ## Table des matières
 
@@ -12,11 +12,11 @@ G_EVENT est une application de gestion d'événements complète permettant d'org
 4. [Prérequis](#prérequis)
 5. [Installation et démarrage](#installation-et-démarrage)
 6. [Documentation API](#documentation-api)
-7. [Modèle de données](#modèle-de-données)
-8. [Technologies utilisées](#technologies-utilisées)
-9. [Patterns de conception](#patterns-de-conception)
-10. [Tests](#tests)
-11. [Auteur](#auteur)
+8. [Modèle de données](#modèle-de-données)
+9. [Technologies utilisées](#technologies-utilisées)
+10. [Patterns de conception](#patterns-de-conception)
+11. [Tests](#tests)
+12. [Auteur](#auteur)
 
 ## Fonctionnalités
 
@@ -28,12 +28,14 @@ L'application permet de:
 - Annuler des événements avec notification automatique aux participants
 - Rechercher des événements par lieu
 - Lister les événements disponibles (non complets et non annulés)
+- **Persistance automatique en fichiers JSON**
 
 ### Gestion des Participants:
 - Inscrire des participants ordinaires et des organisateurs
 - Consulter, modifier et supprimer des profils de participants
 - Rechercher des participants par nom
 - Assigner des organisateurs à des événements
+- **Sauvegarde automatique des données**
 
 ### Gestion des Inscriptions:
 - Inscrire et désinscrire des participants aux événements
@@ -42,89 +44,80 @@ L'application permet de:
 
 ### Notifications:
 - Système de notification asynchrone des participants
-- Support pour notifications par email (configuré pour le développement)
 - Notifications lors d'annulation ou modification d'événements
+- **Simulation d'envoi d'emails pour le développement**
 
 ## Architecture technique
 
 L'application est structurée selon le modèle MVC (Modèle-Vue-Contrôleur):
 
-- **Modèle**: Entités JPA représentant les données de l'application
-- **Vue**: API REST exposée via des contrôleurs Spring
+- **Modèle**: Entités POJO avec sérialisation JSON
 - **Contrôleur**: Logique métier implémentée dans les services
+- **Persistance**: Fichiers JSON avec repositories personnalisés
 
 L'architecture respecte les principes de séparation des responsabilités et d'injection de dépendances.
 
 ## Structure du projet
 
+### Backend (Spring Boot)
 ```
 /src
   /main
     /java/com/project/POO
-      /config        - Configuration Spring Boot et Swagger
+      /config        - Configuration Spring Boot et initialisation JSON
       /controller    - Contrôleurs REST
       /dto           - Objets de transfert de données
       /exception     - Exceptions personnalisées et gestionnaire global
-      /model         - Entités JPA
+      /model         - Entités POJO avec annotations JSON
       /observer      - Interfaces pour le pattern Observer
-      /repository    - Repositories JPA
+      /repository    - Repositories JSON personnalisés
       /service       - Services métier
-      /utils         - Classes utilitaires
+      /utils         - Classes utilitaires (JsonUtils)
     /resources
       application.properties - Configuration de l'application
   /test
     /java/com/project/POO  - Tests unitaires et d'intégration
+/data                      - Dossier des fichiers JSON (auto-créé)
+  evenements.json         - Données des événements
+  participants.json       - Données des participants
 ```
+
+
 
 ## Prérequis
 
-- JDK 21 ou supérieur
-- Maven 3.9.9 ou supérieur
-- MySQL 8.0 ou supérieur
-- Un IDE Java (IntelliJ IDEA, Eclipse, VS Code)
+### Backend
+- **JDK 21** ou supérieur
+- **Maven 3.9.9** ou supérieur
+- **Un IDE Java** (IntelliJ IDEA, Eclipse, VS Code)
+
+
+
+> **Note**: Aucune base de données externe n'est requise - l'application utilise des fichiers JSON pour la persistance.
 
 ## Installation et démarrage
 
-1. **Cloner le dépôt:**
-   ```bash
-   git clone https://github.com/PIO-VIA/API_gestion_devenement.git
-   cd g-event
-   ```
 
-2. **Configurer la base de données:**
+```bash
+# Cloner le dépôt
+git clone https://github.com/PIO-VIA/API_gestion_devenement.git
+cd g-event
 
-   Créez une base de données MySQL nommée `eventbd`.
+# Compiler et lancer l'application
+./mvnw clean spring-boot:run
 
-   Modifiez les paramètres de connexion dans `src/main/resources/application.properties`:
-   ```properties
-   spring.datasource.url=jdbc:mysql://localhost:3306/eventbd?useSSL=false&serverTimezone=UTC
-   spring.datasource.username=votre_utilisateur
-   spring.datasource.password=votre_mot_de_passe
-   ```
+# Sous Windows
+mvnw.cmd clean spring-boot:run
+```
 
-3. **Compiler et lancer l'application:**
-   ```bash
-   # Avec Maven
-   ./mvnw spring-boot:run
-   
-   # Sous Windows
-   mvnw.cmd spring-boot:run
-   ```
+L'API sera disponible à l'adresse: `http://localhost:8080`
 
-4. **Accéder à l'application:**
+Les fichiers JSON seront automatiquement créés dans le dossier `data/` au premier démarrage.
 
-   L'application sera disponible à l'adresse: `http://localhost:8080`
-
-   L'interface Swagger sera disponible à: `http://localhost:8080/swagger-ui.html`
 
 ## Documentation API
 
-L'API REST est entièrement documentée avec Swagger/OpenAPI. Pour explorer et tester les endpoints:
-
-1. Lancez l'application
-2. Ouvrez votre navigateur à l'adresse: `http://localhost:8080/swagger-ui.html`
-
-### Principaux endpoints:
+### Endpoints principaux:
 
 #### Événements
 - `GET /api/evenements` - Liste tous les événements
@@ -150,9 +143,54 @@ L'API REST est entièrement documentée avec Swagger/OpenAPI. Pour explorer et t
 - `POST /api/evenements/{evenementId}/participants/{participantId}` - Inscrit un participant à un événement
 - `DELETE /api/evenements/{evenementId}/participants/{participantId}` - Désinscrit un participant d'un événement
 
+### Test des endpoints
+
+Vous pouvez tester l'API avec:
+- **Postman** ou **Insomnia**
+- **curl** en ligne de commande
+- Swagger
+
+Exemple avec curl:
+```bash
+# Créer une conférence
+curl -X POST http://localhost:8080/api/evenements/conferences \
+  -H "Content-Type: application/json" \
+  -d '{
+    "nom": "Conférence IA 2024",
+    "date": "2024-12-15T14:00:00",
+    "lieu": "Salle de Conférence",
+    "capaciteMax": 100,
+    "theme": "Intelligence Artificielle"
+  }'
+```
+
+
 ## Modèle de données
 
-### Classe Evenement (abstraite)
+### Persistance JSON
+Les données sont stockées dans des fichiers JSON dans le dossier `data/`:
+
+```json
+/* data/evenements.json*/
+[
+  {
+    "@type": "com.project.POO.model.Conference",
+    "id": "uuid-123",
+    "nom": "Conférence IA",
+    "date": "2024-12-15T14:00:00",
+    "lieu": "Salle A",
+    "capaciteMax": 100,
+    "annule": false,
+    "theme": "Intelligence Artificielle",
+    "participants": [],
+    "intervenants": []
+  }
+]
+```
+
+### Classes principales
+
+#### Classe Evenement (abstraite)
 - **id**: Identifiant unique (UUID)
 - **nom**: Nom de l'événement
 - **date**: Date et heure de l'événement
@@ -162,38 +200,35 @@ L'API REST est entièrement documentée avec Swagger/OpenAPI. Pour explorer et t
 - **participants**: Liste des participants inscrits
 - **organisateur**: Organisateur de l'événement
 
-### Classes dérivées
+#### Classes dérivées
 - **Conference**: Inclut thème et intervenants
 - **Concert**: Inclut artiste et genre musical
 
-### Classe Participant
+#### Classe Participant
 - **id**: Identifiant unique (UUID)
 - **nom**: Nom du participant
 - **email**: Email du participant
 - **evenementsInscrits**: Liste des événements auxquels le participant est inscrit
 
-### Classe Organisateur (dérive de Participant)
+#### Classe Organisateur (dérive de Participant)
 - **evenementsOrganises**: Liste des événements organisés
 
 ## Technologies utilisées
 
 ### Backend
 - **Spring Boot 3.4.5**: Framework principal
-- **Spring Data JPA**: Persistance des données
 - **Spring MVC**: Contrôleurs REST
-- **Spring Mail**: Support pour l'envoi d'emails
+- **Jackson**: Sérialisation/Désérialisation JSON
 - **Lombok**: Réduction du code boilerplate
-- **Swagger/OpenAPI**: Documentation de l'API
 - **JUnit 5**: Tests unitaires et d'intégration
 - **Mockito**: Mocking pour les tests
 
-### Base de données
-- **MySQL 8**: Base de données de production
-- **H2 Database**: Base de données en mémoire pour les tests
 
-### Outils de build
-- **Maven**: Gestion des dépendances et build
-- **JaCoCo**: Couverture de tests
+### Persistance
+- **Fichiers JSON**: Stockage des données
+- **Jackson ObjectMapper**: Sérialisation avec support d'héritage
+- **Repositories personnalisés**: Abstraction de la persistance
+
 
 ## Patterns de conception
 
@@ -217,15 +252,14 @@ public interface ParticipantObserver {
 Implémenté pour la gestion centralisée des événements.
 
 ```java
+@Service
 public class GestionEvenements {
-    private static GestionEvenements instance;
+    private final Map<String, Evenement> evenements = new HashMap<>();
     
-    public static synchronized GestionEvenements getInstance() {
-        if (instance == null) {
-            instance = new GestionEvenements();
-        }
-        return instance;
+    public void ajouterEvenement(Evenement evenement) {
+        evenements.put(evenement.getId(), evenement);
     }
+    // ...
 }
 ```
 
@@ -242,6 +276,18 @@ private EvenementDto convertToDto(Evenement evenement) { /* ... */ }
 private Evenement convertToEntity(EvenementDto dto) { /* ... */ }
 ```
 
+### Pattern Repository
+Implémentation personnalisée pour la persistance JSON.
+
+```java
+@Repository
+public class JsonEvenementRepository {
+    public List<Evenement> findAll() { /* ... */ }
+    public Evenement save(Evenement evenement) { /* ... */ }
+    // ...
+}
+```
+
 ## Tests
 
 L'application est couverte par une suite complète de tests unitaires et d'intégration.
@@ -249,6 +295,7 @@ L'application est couverte par une suite complète de tests unitaires et d'inté
 - Tests unitaires pour les services, repositories et utilitaires
 - Tests d'intégration pour les contrôleurs REST
 - Tests pour les patterns de conception implémentés
+- **Tests de sérialisation JSON**
 
 Pour exécuter les tests:
 
@@ -264,10 +311,9 @@ Pour générer un rapport de couverture de code:
 
 Le rapport sera généré dans `target/site/jacoco/index.html`.
 
+
 ## Auteur
 
-Ce projet a été développé par **SOUNTSA DJIELE PIO VIANNEY** dans le cadre d'un apprentissage avancé de Spring Boot.
+Ce projet a été développé par **SOUNTSA DJIELE PIO VIANNEY** dans le cadre d'un apprentissage avancé de Spring Boot avec sérialisation JSON et frontend moderne.
 
 ---
-
-
